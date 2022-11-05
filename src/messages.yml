@@ -29,7 +29,7 @@ broadcasts:
     # What will occur when a player clicks on the broadcast (:
     # "*" -> Suggests a message in the player's chat. (Ex.: *exemple -> Suggests "exemple")
     # "/" -> Suggests a command in the player's chat. (Ex.: /exemple -> Suggests "/exemple")
-    # "link" -> Opens a link if IT IS VALID! (Make sure to add "https://...")
+    # Anything else opens a link if IT IS VALID! (Make sure to add "https://...")
     click: "/automaticbroadcast"
     # The tooltip that will be displayed when the players hover over the message.
     hover:
@@ -49,9 +49,9 @@ broadcasts:
       - "        get help changing the config of the plugin!"
       - "       &dJoin the discord on &d&ndiscord.io/AnimalPlugins&r"
       - ""
+    click: "https://discord.io/AnimalPlugins"
     hover:
       - "&d&l<< &5&l! &d&l>> Click to join!"
-    click: "https://discord.io/AnimalPlugins"
 
   staff:
     messages:

@@ -21,9 +21,43 @@ public class ConfigManager {
         this.messages = messages;
     }
 
+    ////////////////
+    // CONFIG.YML //
+    ////////////////
+
+    // Returns the time between every broadcast (not in second for the moment) //
+    public int getTimeBetweenMessages() {
+        return config.getInt("time-between-messages");
+    }
+
+    // Returns true if the broadcasts should be sent randomly //
+    public boolean getRandom() {
+        return config.getBoolean("random");
+    }
+
+    // Returns true if the exempt permission is enabled //
+    private boolean getExemptPermission() {
+        return config.getBoolean("exempt-permission");
+    }
+
+    // Returns a list of the disabled world(s) //
+    private List<String> getDisabledWorlds() {
+        return config.getStringList("disabled-worlds");
+    }
+
+    // Returns a list of the exempted player(s) //
+    private List<String> getExemptedPlayers() {
+        return config.getStringList("exempted-players");
+    }
+
     // Returns the unknown command message //
     public String getUnknownCommandMessage() {
         return applyFormat(config.getString("unknown-command"));
+    }
+
+    // Returns the no permission message //
+    public String getNoPermissionMessage() {
+        return applyFormat(config.getString("no-permission"));
     }
 
     // Returns the plugin reload command message //
@@ -31,10 +65,47 @@ public class ConfigManager {
         return applyFormat(config.getString("plugin-reload"));
     }
 
-    // Returns the no permission message //
-    public String getNoPermissionMessage() {
-        return applyFormat(config.getString("no-permission"));
+    //////////////////
+    // MESSAGES.YML //
+    //////////////////
+
+    // Returns a list of all the existing broadcasts (Staff, Discord, etc.) //
+    public String[] getBroadcastTitles() {
+        // Creates a Set with all the titles of the messages directly from the "messages.yml" file //
+        Set<String> broadcastTitlesSet = messages.getConfigurationSection("broadcasts").getKeys(false);
+        // Creates a list of the size of the "broadcastTitlesSet" Set //
+        String[] broadcastTitlesList = new String[broadcastTitlesSet.size()];
+        // Changes the created board to set the collected titles (Set) inside it //
+        return broadcastTitlesSet.toArray(broadcastTitlesList);
     }
+
+    // Returns a list of all the messages in a broadcast //
+    public List<String> getBroadcastMessagesList(String broadcastTitle) {
+        return messages.getStringList("broadcasts." + broadcastTitle + ".messages");
+    }
+
+    // Returns the broadcast "click" message/command/suggestion string if applicable //
+    public String getBroadcastClick(String broadcastTitle) {
+        return messages.getString("broadcasts." + broadcastTitle + ".click");
+    }
+
+    // Returns the broadcast "hover" message(s) list if applicable //
+    public List<String> getBroadcastHoverList(String broadcastTitle) {
+        return messages.getStringList("broadcasts." + broadcastTitle + ".hover");
+    }
+
+    // Tries to get the broadcast sound value (if it exist...) //
+    public Sound getBroadcastSound(String broadcastTitle) {
+        try {
+            return Sound.valueOf(messages.getString("broadcasts." + broadcastTitle + ".sound"));
+        } catch(Exception exception) {
+            return null;
+        }
+    }
+
+    ////////////
+    // OTHERS //
+    ////////////
 
     // Applies the format used threw the whole plugin (returns a formatted string) //
     public String applyFormat(String message) {
@@ -56,25 +127,6 @@ public class ConfigManager {
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
-    // Returns a list of all the existing broadcasts (Staff, Discord, etc.) //
-    public String[] getBroadcastTitles() {
-        // Creates a Set with all the titles of the messages directly from the "messages.yml" file //
-        Set<String> broadcastTitlesSet = messages.getConfigurationSection("broadcasts").getKeys(false);
-        // Creates a list of the size of the "broadcastTitlesSet" Set //
-        String[] broadcastTitlesList = new String[broadcastTitlesSet.size()];
-        // Changes the created board to set the collected titles (Set) inside it //
-        return broadcastTitlesSet.toArray(broadcastTitlesList);
-    }
-
-    // Tries to get the broadcast sound value (if it exist...) //
-    public Sound getBroadcastSound(String broadcastTitle) {
-        try {
-            return Sound.valueOf(messages.getString("broadcasts." + broadcastTitle + ".sound"));
-        } catch(Exception exception) {
-            return null;
-        }
-    }
-
     // Returns the permission for a player to receive a broadcast.
     public boolean playerCanReceiveBroadcast(Player player) {
         // True if list of disabled world(s) contains the player's world.
@@ -92,45 +144,5 @@ public class ConfigManager {
         // - Does not have the exempt permission (if the permission option is enabled)
         // or the permission option is disabled.
         return !disabledWorldsContainsPlayerWorld && !(permissionEnabled && playerHasPermission) && !exemptedPlayersContainsPlayer;
-    }
-
-    // Returns the broadcast "hover" message(s) list if applicable //
-    public List<String> getBroadcastHoverList(String broadcastTitle) {
-        return messages.getStringList("broadcasts." + broadcastTitle + ".hover");
-    }
-
-    // Returns the broadcast "click" message/command/suggestion string if applicable //
-    public String getBroadcastClick(String broadcastTitle) {
-        return messages.getString("broadcasts." + broadcastTitle + ".click");
-    }
-
-    // Returns a list of all the messages in a broadcast //
-    public List<String> getBroadcastMessagesList(String broadcastTitle) {
-        return messages.getStringList("broadcasts." + broadcastTitle + ".messages");
-    }
-
-    // Returns a list of the disabled world(s) //
-    private List<String> getDisabledWorlds() {
-        return config.getStringList("disabled-worlds");
-    }
-
-    // Returns true if the exempt permission is enabled //
-    private boolean getExemptPermission() {
-        return config.getBoolean("exempt-permission");
-    }
-
-    // Returns a list of the exempted player(s) //
-    private List<String> getExemptedPlayers() {
-        return config.getStringList("exempted-players");
-    }
-
-    // Returns the time between every broadcast (not in second for the moment) //
-    public int getTimeBetweenMessages() {
-        return config.getInt("time-between-messages");
-    }
-
-    // Returns true if the broadcasts should be sent randomly //
-    public boolean getRandom() {
-        return config.getBoolean("random");
     }
 }

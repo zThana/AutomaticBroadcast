@@ -22,7 +22,7 @@ public class Commands implements CommandExecutor {
         if (command.getName().equalsIgnoreCase("automaticbroadcast")) {
             // If there are no arguments, sends the error and return false //
             if (args.length == 0) {
-                unknownCommand(sender);
+                sendUnknownCommandMessage(sender);
                 return false;
             }
 
@@ -38,7 +38,7 @@ public class Commands implements CommandExecutor {
                     sendList(sender);
                     break;
                 default:
-                    unknownCommand(sender);
+                    sendUnknownCommandMessage(sender);
                     break;
             }
         }
@@ -46,23 +46,12 @@ public class Commands implements CommandExecutor {
         return false;
     }
 
-
-    // Sends the unknownCommand error message //
-    private void unknownCommand(CommandSender sender) {
-        sender.sendMessage(config.getUnknownCommandMessage());
-    }
-
-    // Sends the noPermission error message //
-    private void noPermission(CommandSender sender) {
-        sender.sendMessage(config.getNoPermissionMessage());
-    }
-
     // Reloads the plugin //
     public void reloadPlugin(CommandSender sender) {
         // If the sender does not have the permission //
         if (!sender.hasPermission("automaticbroadcast.config")) {
             // Sends the noPermission message and return //
-            noPermission(sender);
+            sendNoPermissionMessage(sender);
             return;
         }
 
@@ -75,7 +64,7 @@ public class Commands implements CommandExecutor {
         // If the sender does not have the permission //
         if (!sender.hasPermission("automaticbroadcast.config")) {
             // Sends the noPermission message and return //
-            noPermission(sender);
+            sendNoPermissionMessage(sender);
             return;
         }
 
@@ -99,5 +88,15 @@ public class Commands implements CommandExecutor {
                 sender.spigot().sendMessage(message);
             }
         }
+    }
+
+    // Sends the unknownCommand error message //
+    private void sendUnknownCommandMessage(CommandSender sender) {
+        sender.sendMessage(config.getUnknownCommandMessage());
+    }
+
+    // Sends the noPermission error message //
+    private void sendNoPermissionMessage(CommandSender sender) {
+        sender.sendMessage(config.getNoPermissionMessage());
     }
 }
