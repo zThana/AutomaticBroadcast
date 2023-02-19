@@ -1,8 +1,7 @@
 package ca.pandaaa.automaticbroadcast;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.chat.*;
-import org.bukkit.Bukkit;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,13 +15,13 @@ public class Commands implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String message, String[] args) {
         // If the sender is not a player or the console, return false (prevents from continuing in the function) //
-        if(!(sender instanceof Player) && !(sender instanceof ConsoleCommandSender)) return false;
+        if (!(sender instanceof Player) && !(sender instanceof ConsoleCommandSender)) return false;
 
         // If the command name is "automaticbroadcast", "autobroadcast" or "ab" //
         if (command.getName().equalsIgnoreCase("automaticbroadcast")) {
             // If there are no arguments, sends the error and return false //
             if (args.length == 0) {
-                unknownCommand(sender);
+                sendUnknownCommandMessage(sender);
                 return false;
             }
 
@@ -38,7 +37,7 @@ public class Commands implements CommandExecutor {
                     sendList(sender);
                     break;
                 default:
-                    unknownCommand(sender);
+                    sendUnknownCommandMessage(sender);
                     break;
             }
         }
@@ -46,23 +45,12 @@ public class Commands implements CommandExecutor {
         return false;
     }
 
-
-    // Sends the unknownCommand error message //
-    private void unknownCommand(CommandSender sender) {
-        sender.sendMessage(config.getUnknownCommandMessage());
-    }
-
-    // Sends the noPermission error message //
-    private void noPermission(CommandSender sender) {
-        sender.sendMessage(config.getNoPermissionMessage());
-    }
-
     // Reloads the plugin //
     public void reloadPlugin(CommandSender sender) {
         // If the sender does not have the permission //
         if (!sender.hasPermission("automaticbroadcast.config")) {
             // Sends the noPermission message and return //
-            noPermission(sender);
+            sendNoPermissionMessage(sender);
             return;
         }
 
@@ -70,34 +58,41 @@ public class Commands implements CommandExecutor {
         AutomaticBroadcast.getPlugin().reloadConfig(sender);
     }
 
-    // Sends all the broadcast rapidly to the sender of the command //
+    // Sends all the broadcast to the sender of the command //
     public void sendList(CommandSender sender) {
         // If the sender does not have the permission //
         if (!sender.hasPermission("automaticbroadcast.config")) {
             // Sends the noPermission message and return //
-            noPermission(sender);
+            sendNoPermissionMessage(sender);
             return;
         }
 
-        // For all the broadcasts //
-        for (String broadcastTitles : config.getBroadcastTitles()) {
+        for (Broadcast broadcast : config.getSettings().getBroadcasts().values()) {
             // For all the messages of each broadcast //
-            for (String broadcastMessages : config.getBroadcastMessagesList(broadcastTitles)) {
-                // Creates a message component which is the message formatted //
-                if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null && sender instanceof Player)
-                    broadcastMessages = PlaceholderAPI.setPlaceholders((Player) sender, broadcastMessages);
-                TextComponent message = new TextComponent(TextComponent.fromLegacyText(config.applyFormat(broadcastMessages)));
-                BroadcastManager manager = new BroadcastManager();
-                // Applies the hover and click event to the component //
-                if (sender instanceof Player)
-                    manager.setHoverBroadcastEvent(message, config.getBroadcastHoverList(broadcastTitles), (Player) sender);
-                else
-                    manager.setHoverBroadcastEvent(message, config.getBroadcastHoverList(broadcastTitles), null);
-                manager.setClickBroadcastEvent(message, config.getBroadcastClick(broadcastTitles));
+            broadcast.getTextLines().forEach(line -> {
+                // Creates a text component which is the formatted message //
+                if (config.getSettings().usingPAPI() && sender instanceof Player)
+                    line = PlaceholderAPI.setPlaceholders((Player) sender, line);
+
+                TextComponent message = new TextComponent(TextComponent.fromLegacyText(Utils.applyFormat(line)));
+
+                // Applies the hover and click event to the component if the receiver is a player //
+                Utils.setHoverEvent(message, broadcast.getHoverLines(), sender instanceof Player ? (Player) sender : null);
+                Utils.setClickEvent(message, broadcast.getClickText());
 
                 // Sends the message with the correct format and all it's events to the sender //
                 sender.spigot().sendMessage(message);
-            }
+            });
         }
+    }
+
+    // Sends the unknownCommand error message //
+    private void sendUnknownCommandMessage(CommandSender sender) {
+        sender.sendMessage(config.getSettings().getUnknownCommandMessage());
+    }
+
+    // Sends the noPermission error message //
+    private void sendNoPermissionMessage(CommandSender sender) {
+        sender.sendMessage(config.getSettings().getNoPermissionMessage());
     }
 }

@@ -15,50 +15,50 @@
 
 # The broadcasts that will be displayed automatically.
 broadcasts:
-  # The name of the broadcast, basically a key word to know which broadcast is which (does not change anything in-game).
-  # Make sure every broadcast has a different name (no duplicates!)
-  plugin:
-    # A list of messages that will be displayed when the broadcast occurs.
-    messages:
-      - ""
-      - "                  &b&l<< &3&l! &b&l>> AutomaticBroadcast"
-      - "  &fThank you for downloading my &3&lAuto&b&lmatic &8&lBroad&7&lcast"
-      - "       plugin! I hope it will be helpful on your server!"
-      - "   &bVisit the support discord for any help with the plugin!"
-      - ""
-    # What will occur when a player clicks on the broadcast (:
-    # "*" -> Suggests a message in the player's chat. (Ex.: *exemple -> Suggests "exemple")
-    # "/" -> Suggests a command in the player's chat. (Ex.: /exemple -> Suggests "/exemple")
-    # "link" -> Opens a link if IT IS VALID! (Make sure to add "https://...")
-    click: "/automaticbroadcast"
-    # The tooltip that will be displayed when the players hover over the message.
-    hover:
-      - "    &b&l<< &3&l! &b&l>> ToolTip"
-      - "&3&l* &fMultiple lines!"
-      - "&3&l* &fUseful informations!"
-      - "&3&l* &fClickable!"
-    # The sound played for every player receiving the broadcast.
-    # Please refer to the bukkit list of sound: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
-    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    # The name of the broadcast, basically a key word to know which broadcast is which (does not change anything in-game).
+    # Make sure every broadcast has a different name (no duplicates!)
+    plugin:
+        # A list of messages that will be displayed when the broadcast occurs.
+        messages:
+            - ""
+            - "                  &b&l<< &3&l! &b&l>> AutomaticBroadcast"
+            - "  &fThank you for downloading my &3&lAuto&b&lmatic &8&lBroad&7&lcast"
+            - "       plugin! I hope it will be helpful on your server!"
+            - "   &bVisit the support discord for any help with the plugin!"
+            - ""
+        # What will occur when a player clicks on the broadcast (:
+        # "*" -> Suggests a message in the player's chat. (Ex.: *example -> Suggests "example")
+        # "/" -> Suggests a command in the player's chat. (Ex.: /example -> Suggests "/example")
+        # Anything else opens a link if IT IS VALID! (Make sure to add "https://...")
+        click: "/automaticbroadcast"
+        # The tooltip that will be displayed when the players hover over the message.
+        hover:
+            - "    &b&l<< &3&l! &b&l>> ToolTip"
+            - "&3&l* &fMultiple lines!"
+            - "&3&l* &fUseful informations!"
+            - "&3&l* &fClickable!"
+        # The sound played for every player receiving the broadcast.
+        # Please refer to the bukkit list of sound: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
 
-  discord:
-    messages:
-      - ""
-      - "                       &d&l<< &5&l! &d&l>> Discord"
-      - "    &fJoin the Automatic Broadcast support discord to"
-      - "        get help changing the config of the plugin!"
-      - "       &dJoin the discord on &d&ndiscord.io/AnimalPlugins&r"
-      - ""
-    hover:
-      - "&d&l<< &5&l! &d&l>> Click to join!"
-    click: "https://discord.io/AnimalPlugins"
+    discord:
+        messages:
+            - ""
+            - "                       &d&l<< &5&l! &d&l>> Discord"
+            - "    &fJoin the Automatic Broadcast support discord to"
+            - "        get help changing the config of the plugin!"
+            - "       &dJoin the discord on &d&ndiscord.io/AnimalPlugins&r"
+            - ""
+        click: "https://discord.io/AnimalPlugins"
+        hover:
+            - "&d&l<< &5&l! &d&l>> Click to join!"
 
-  staff:
-    messages:
-      - ""
-      - "             &c&l<< &4&l! &c&l>> Staff Assistance"
-      - "  &fIf you need any form of help or assistance"
-      - "    from our staff, do not hesitate to ask us!"
-      - "      &cMessage all online staff using: /helpop"
-      - ""
-    click: "*I need support!"
+    staff:
+        messages:
+            - ""
+            - "             &c&l<< &4&l! &c&l>> Staff Assistance"
+            - "  &fIf you need any form of help or assistance"
+            - "    from our staff, do not hesitate to ask us!"
+            - "      &cMessage all online staff using: /helpop"
+            - ""
+        click: "*I need support!"

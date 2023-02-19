@@ -1,15 +1,13 @@
 package ca.pandaaa.automaticbroadcast;
 
-import java.util.List;
-import java.util.Random;
-
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Collection;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 public class BroadcastManager {
 
@@ -22,119 +20,86 @@ public class BroadcastManager {
 
     // Sends the automatic broadcasts (the principal function of the plugin) //
     public void automaticBroadcast() {
-        // Creates a list of the broadcasts' titles (Discord, Staff, Plugin) //
-        String[] broadcastList = config.getBroadcastTitles();
-
         // If the list is empty, return (return prevents from looking at the rest of the code) //
-        if (broadcastList.length < 1) return;
-        // If the config "random" option is set to true, call the random broadcast function //
-        if (config.getRandom()) {
-            sendAutomaticRandomBroadcast(broadcastList);
+        if (config.getSettings().getBroadcasts().keySet().size() < 1)
             return;
-        }
 
-        // Calls the broadcast function //
-        sendAutomaticBroadcast(broadcastList);
-        // Increments the broadcastIndex (which broadcast is being displayed next) //
-        if (broadcastIndex == broadcastList.length - 1) broadcastIndex = 0;
-        else broadcastIndex++;
+        // If the config "random" option is set to true, call the random broadcast function //
+        if (config.getSettings().isRandomOrder())
+            sendAutomaticRandomBroadcast();
+        else {
+            // Calls the broadcast function //
+            sendAutomaticBroadcast();
+
+            // Increments the broadcastIndex (which broadcast is being displayed next) //
+            if (broadcastIndex == config.getSettings().getBroadcasts().size() - 1)
+                broadcastIndex = 0;
+            else
+                broadcastIndex++;
+        }
     }
 
     // Sends the automatic random broadcast //
-    private void sendAutomaticRandomBroadcast(String[] broadcastList) {
+    private void sendAutomaticRandomBroadcast() {
         // Getting a random integer (from 0 to the size of the broadcastList (list of all the broadcasts))
-        int number = new Random().nextInt(broadcastList.length);
+        int number = new Random().nextInt(config.getSettings().getBroadcasts().size());
 
         // If the number chosen randomly is the same as the last displayed broadcast's index, we call the function again //
         // If there is only one broadcast, we continue with the same broadcast (cannot choose another one...) //
-        if (number == broadcastIndex && broadcastList.length != 1) {
-            sendAutomaticRandomBroadcast(broadcastList);
-            return;
+        if (number == broadcastIndex && config.getSettings().getBroadcasts().size() != 1)
+            sendAutomaticRandomBroadcast();
+        else {
+            // When the random successfully worked, we assign the value of that random to the broadcastIndex (next broadcast being displayed) //
+            broadcastIndex = number;
+            sendAutomaticBroadcast();
         }
-
-        // When the random successfully worked, we assign the value of that random to the broadcastIndex (next broadcast being displayed) //
-        broadcastIndex = number;
-
-        sendAutomaticBroadcast(broadcastList);
     }
 
     // Sends the automatic broadcast //
-    private void sendAutomaticBroadcast(String[] broadcastList) {
-        // For all the online players //
-        for (Player broadcastReceivers : Bukkit.getOnlinePlayers()) {
-            // If the player can receive the broadcast (see ConfigManager.playerCanReceiveBroadcast) //
-            if (config.playerCanReceiveBroadcast(broadcastReceivers)) {
-                // If the broadcast has a determined sound, it is played at the location of the player.
-                if (config.getBroadcastSound(broadcastList[broadcastIndex]) != null)
-                    broadcastReceivers.playSound(broadcastReceivers.getLocation(),
-                            config.getBroadcastSound(broadcastList[broadcastIndex]), 1, 1);
+    private void sendAutomaticBroadcast() {
+        Collection<? extends Player> receivers = Bukkit.getOnlinePlayers();
 
-                // For all the messages in the broadcast (config: broadcastTitle.messages) //
-                for (String broadcastMessages : config.getBroadcastMessagesList(broadcastList[broadcastIndex])) {
+        // Player may receive the message if...:
+        // - Is not in a disabled world.
+        // - Is not in the exempted players list.
+        // - Does not have the exempt permission (if the permission option is enabled)
+        // or the permission option is disabled.
 
-                    // Changes the placeholder(s) using PAPI (if applicable)
-                    if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null)
-                        broadcastMessages = PlaceholderAPI.setPlaceholders(broadcastReceivers, broadcastMessages);
+        // removes any online player if their username is in the exempted players list, if it has any entries
+        if (config.getSettings().getExemptedPlayers().size() > 0)
+            receivers = receivers.stream().filter(player -> config.getSettings().getExemptedPlayers().contains(player.getName())).collect(Collectors.toList());
 
-                    // Creates a component message, which is the formatted message //
-                    TextComponent message = new TextComponent(TextComponent.fromLegacyText(config.applyFormat(broadcastMessages)));
-                    // Calls the functions to add the hover and click events to this component //
-                    setHoverBroadcastEvent(message, config.getBroadcastHoverList(broadcastList[broadcastIndex]), broadcastReceivers);
-                    setClickBroadcastEvent(message, config.getBroadcastClick(broadcastList[broadcastIndex]));
+        if (config.getSettings().getDisabledWorlds().size() > 0)
+            receivers = receivers.stream().filter(player -> config.getSettings().getDisabledWorlds().contains(player.getWorld().getName())).collect(Collectors.toList());
 
-                    // Sends the message with the correct format and the click and hover events (if applicable) //
-                    broadcastReceivers.spigot().sendMessage(message);
-                }
-            }
-        }
-    }
-
-    // Applies the hover event on the broadcast //
-    public void setHoverBroadcastEvent(TextComponent component, List<String> hoverMessagesList, Player broadcastReceivers) {
-        // Checks for empty hover arguments.
-        if(hoverMessagesList.size() == 0)
-            return;
-
-        // Creates a component builder //
-        ComponentBuilder hoverMessageBuilder = new ComponentBuilder();
-        int hoverLine = 0;
-        // For all the hover messages of the broadcast (config: broadcastTitle.hover) //
-        for (String hoverMessages : hoverMessagesList) {
-            if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null && broadcastReceivers != null)
-                hoverMessages = PlaceholderAPI.setPlaceholders(broadcastReceivers, hoverMessages);
-            // Adds the message to the component builder //
-            TextComponent textComponent = new TextComponent(TextComponent.fromLegacyText(config.applyFormat(hoverMessages)));
-            hoverMessageBuilder.append(textComponent);
-            // Changes the line if not at the last message //
-            if (hoverLine != (hoverMessagesList.size() - 1)) {
-                hoverMessageBuilder.append("\n");
-            }
-            hoverLine++;
+        if (config.getSettings().isExemptPermission()) {
+            // continue filtering players based on their permissions. if they have "automaticbroadcast.exempt", don't send it to them
+            receivers = receivers.stream().filter(player -> !player.hasPermission("automaticbroadcast.exempt")).collect(Collectors.toList());
         }
 
-        // Applies the hover message (the component builder) to the message desired //
-        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverMessageBuilder.create()));
-    }
+        final Broadcast broadcast = Utils.getBroadcastByIndex(config.getSettings().getBroadcasts(), broadcastIndex);
 
-    // Applies the click event on the broadcast //
-    public void setClickBroadcastEvent(TextComponent component, String click) {
-        // If the click string is null, return //
-        if (click == null || click.length() == 0) return;
+        // For all applicable receivers //
+        for (Player broadcastReceiver : receivers) {
+            // If the broadcast has a determined sound, it is played at the location of the player.
+            if (broadcast.getSound() != null)
+                broadcastReceiver.playSound(broadcastReceiver.getLocation(), broadcast.getSound(), 1, 1);
 
-        // Checks the char at the start of the click string (config: broadcastTitle.click)
-        switch (click.charAt(0)) {
-            // '/' suggests a command (with the /) //
-            // '*' suggests a message (without the *) //
-            // Anything else will try to open a link (will not work if the link is not a real link) //
-            case '/':
-                component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, click));
-                break;
-            case '*':
-                component.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, click.substring(1)));
-                break;
-            default:
-                component.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, click));
-                break;
+            // For all the messages in the broadcast (config: broadcastTitle.messages) //
+            for (String broadcastMessages : broadcast.getTextLines()) {
+                // Changes the placeholder(s) using PAPI (if applicable)
+                if (config.getSettings().usingPAPI())
+                    broadcastMessages = PlaceholderAPI.setPlaceholders(broadcastReceiver, broadcastMessages);
+
+                // Creates a component message, which is the formatted message //
+                TextComponent message = new TextComponent(TextComponent.fromLegacyText(Utils.applyFormat(broadcastMessages)));
+                // Calls the functions to add the hover and click events to this component //
+                Utils.setHoverEvent(message, broadcast.getHoverLines(), broadcastReceiver);
+                Utils.setClickEvent(message, broadcast.getClickText());
+
+                // Sends the message with the correct format and the click and hover events (if applicable) //
+                broadcastReceiver.spigot().sendMessage(message);
+            }
         }
     }
 }
